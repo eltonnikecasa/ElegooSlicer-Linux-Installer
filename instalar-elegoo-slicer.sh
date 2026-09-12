@@ -76,14 +76,30 @@ if ! command -v curl >/dev/null 2>&1; then
 fi
 
 GUI=""
+
+# Interface gráfica independente do ambiente de desktop:
+# usa o que já estiver disponível no sistema.
 if command -v zenity >/dev/null 2>&1; then
     GUI="zenity"
 elif command -v kdialog >/dev/null 2>&1; then
     GUI="kdialog"
 else
-    printf '\nInstalando interface gráfica do instalador...\n'
-    install_packages zenity || exit 1
-    GUI="zenity"
+    printf '
+Nenhuma interface gráfica compatível encontrada.
+'
+    printf 'Tentando instalar Zenity...
+'
+
+    if install_packages zenity >/dev/null 2>&1; then
+        GUI="zenity"
+    else
+        # Fallback universal: funciona mesmo sem ambiente gráfico compatível.
+        GUI="cli"
+        printf 'Não foi possível instalar Zenity.
+'
+        printf 'O instalador continuará em modo texto.
+'
+    fi
 fi
 
 # ImageMagick é usado para extrair/converter resources/images/ElegooSlicer.ico para PNG.
@@ -133,18 +149,28 @@ esac
 gui_info() {
     local text="$1"
     if [ "$GUI" = "zenity" ]; then
-        zenity --info --title="$TITLE" --width=540 --text="$text"
-    else
+        zenity --info --title="$TITLE" --width=540 --text="$text" 2>/dev/null
+    elif [ "$GUI" = "kdialog" ]; then
         kdialog --title "$TITLE" --msgbox "$text"
+    else
+        printf '
+%s
+
+' "$(printf '%s' "$text" | sed 's/<[^>]*>//g')"
     fi
 }
 
 gui_error() {
     local text="$1"
     if [ "$GUI" = "zenity" ]; then
-        zenity --error --title="$TITLE" --width=540 --text="$text"
-    else
+        zenity --error --title="$TITLE" --width=540 --text="$text" 2>/dev/null
+    elif [ "$GUI" = "kdialog" ]; then
         kdialog --title "$TITLE" --error "$text"
+    else
+        printf '
+ERRO: %s
+
+' "$(printf '%s' "$text" | sed 's/<[^>]*>//g')" >&2
     fi
 }
 
@@ -152,10 +178,17 @@ gui_question() {
     local text="$1"
     if [ "$GUI" = "zenity" ]; then
         zenity --question --title="$TITLE" --width=560 \
-            --ok-label="Sim" --cancel-label="Não" --text="$text"
-    else
+            --ok-label="Sim" --cancel-label="Não" --text="$text" 2>/dev/null
+    elif [ "$GUI" = "kdialog" ]; then
         kdialog --title "$TITLE" --yesno "$text" \
             --yes-label "Sim" --no-label "Não"
+    else
+        printf '
+%s
+' "$(printf '%s' "$text" | sed 's/<[^>]*>//g')"
+        printf 'Continuar? [s/N]: '
+        read -r answer
+        [[ "$answer" =~ ^[SsYy]$ ]]
     fi
 }
 
@@ -320,6 +353,7 @@ APP_ICON="$HOME/.local/share/icons/hicolor/256x256/apps/elegooslicerico.png"
 GUI=""
 command -v zenity >/dev/null 2>&1 && GUI="zenity"
 if [ -z "$GUI" ] && command -v kdialog >/dev/null 2>&1; then GUI="kdialog"; fi
+if [ -z "$GUI" ]; then GUI="cli"; fi
 
 question() {
     if [ "$GUI" = "zenity" ]; then
@@ -327,7 +361,7 @@ question() {
             --ok-label="Sim" --cancel-label="Não" \
             --text="Deseja realmente desinstalar o ElegooSlicer?
 
-Seus perfis e configurações pessoais serão preservados."
+Seus perfis e configurações pessoais serão preservados." 2>/dev/null
     elif [ "$GUI" = "kdialog" ]; then
         kdialog --title "$TITLE" --yesno \
             "Deseja realmente desinstalar o ElegooSlicer?
@@ -343,7 +377,7 @@ Seus perfis e configurações pessoais serão preservados."
 info() {
     local text="$1"
     if [ "$GUI" = "zenity" ]; then
-        zenity --info --title="$TITLE" --width=500 --text="$text"
+        zenity --info --title="$TITLE" --width=500 --text="$text" 2>/dev/null
     elif [ "$GUI" = "kdialog" ]; then
         kdialog --title "$TITLE" --msgbox "$text"
     else
@@ -483,7 +517,7 @@ if [ "$GUI" = "zenity" ]; then
         --width=560 \
         --percentage=0 \
         --auto-close \
-        --no-cancel
+        --no-cancel 2>/dev/null
 
     STATUS="${PIPESTATUS[0]}"
 
@@ -497,7 +531,7 @@ if [ "$GUI" = "zenity" ]; then
 
 A versão anterior, se existente, foi preservada."
     fi
-else
+elif [ "$GUI" = "kdialog" ]; then
     kdialog --title "$TITLE" --passivepopup "Baixando ElegooSlicer $LATEST_VERSION..." 4
 
     curl -fL "$DOWNLOAD_URL" -o "$TMP_APPIMAGE" \
@@ -515,6 +549,35 @@ else
     chmod +x "$APPIMAGE"
     extract_correct_icon || exit 22
     create_shortcuts
+    refresh_desktop
+
+    rm -rf "$EXTRACT_DIR"
+    rm -f "$APPIMAGE.bak"
+
+else
+    printf '\nBaixando ElegooSlicer %s...\n' "$LATEST_VERSION"
+
+    curl -fL "$DOWNLOAD_URL" -o "$TMP_APPIMAGE" \
+        || fail "Falha ao baixar o AppImage."
+
+    chmod +x "$TMP_APPIMAGE"
+
+    [ -f "$APPIMAGE" ] && mv "$APPIMAGE" "$APPIMAGE.bak"
+
+    if ! mv "$TMP_APPIMAGE" "$APPIMAGE"; then
+        [ -f "$APPIMAGE.bak" ] && mv "$APPIMAGE.bak" "$APPIMAGE"
+        fail "Falha ao instalar o AppImage."
+    fi
+
+    chmod +x "$APPIMAGE"
+
+    printf 'Extraindo ícone correto...\n'
+    extract_correct_icon || fail "Falha ao extrair o ícone correto do AppImage."
+
+    printf 'Criando atalhos...\n'
+    create_shortcuts
+
+    printf 'Atualizando menu de aplicativos...\n'
     refresh_desktop
 
     rm -rf "$EXTRACT_DIR"

@@ -40,7 +40,7 @@ However, **implemented support does not mean that the distribution has been test
 
 | Distribution | Package Manager | Status       |
 | ------------ | --------------- | ------------ |
-| CachyOS      | pacman          | ✅ Tested     |
+| **CachyOS**  | pacman          | ✅ **Tested** |
 | Arch Linux   | pacman          | ⬜ Not tested |
 | Manjaro      | pacman          | ⬜ Not tested |
 | Debian       | apt             | ⬜ Not tested |
@@ -50,7 +50,7 @@ However, **implemented support does not mean that the distribution has been test
 
 ### Currently tested
 
-**CachyOS** is currently the only distribution on which the installer has been tested.
+**CachyOS is currently the only distribution on which the installer has been tested.**
 
 Testing and feedback from users of other distributions are welcome.
 
@@ -58,10 +58,10 @@ If you successfully test the installer on another supported distribution, please
 
 ## Installation
 
-Download the installer:
+Clone this repository:
 
 ```bash
-git clone https://github.com/YOUR-USERNAME/ElegooSlicer-Linux-Installer.git
+git clone https://github.com/eltonnikecasa/ElegooSlicer-Linux-Installer.git
 cd ElegooSlicer-Linux-Installer
 ```
 
@@ -83,9 +83,10 @@ Required dependencies can be installed automatically using the detected package 
 
 ## Updating ElegooSlicer
 
-Run the installer again:
+To check for and install a newer version, simply run the installer again:
 
 ```bash
+cd ElegooSlicer-Linux-Installer
 ./instalar-elegoo-slicer.sh
 ```
 
@@ -95,17 +96,15 @@ If ElegooSlicer is already installed, the script treats the operation as an upda
 
 The existing AppImage is temporarily preserved while the new version is installed.
 
-## Official Downloads
+## Official ElegooSlicer Downloads
 
 ElegooSlicer itself is **not hosted or distributed by this repository**.
 
-The installer retrieves releases directly from:
+The installer retrieves releases directly from the official ELEGOO repository:
 
-`elegooofficial/ElegooSlicer`
+**https://github.com/elegooofficial/ElegooSlicer**
 
-on GitHub.
-
-This keeps the installer separate from the ElegooSlicer software distribution and ensures that the downloaded AppImage originates from ELEGOO's official release repository.
+This keeps the installer separate from the ElegooSlicer software distribution and ensures that the downloaded AppImage originates from ELEGOO's official GitHub releases.
 
 ## Application Icon
 
@@ -210,34 +209,36 @@ These provide intended support for distributions including:
 * Fedora
 * openSUSE
 
-Again, only **CachyOS has currently been tested**.
+> **Note:** Only CachyOS has currently been tested.
 
-## Desktop Environments
+## Graphical Interface
 
-The installer supports graphical dialogs through:
+The installer uses one of the following graphical dialog systems:
 
-* Zenity
-* KDialog
+* **Zenity**
+* **KDialog**
 
-It also refreshes the appropriate desktop databases and attempts to refresh KDE application caches when KDE tools are available.
+If neither is available, the installer attempts to install Zenity using the detected package manager.
 
-The first tested environment is CachyOS.
+The installer also refreshes the appropriate desktop application databases and KDE application caches when the relevant tools are available.
 
-Additional desktop environment testing is welcome.
+## Safety and Updates
 
-## Safety
+The installer is designed to minimize changes to the operating system.
 
-The installer is designed to minimize changes to the system.
-
-ElegooSlicer itself is installed inside the user's home directory.
+ElegooSlicer itself is installed entirely inside the current user's home directory.
 
 Before replacing an existing ElegooSlicer AppImage during an update, the current AppImage is temporarily backed up.
 
 If installation fails during the replacement process, the installer attempts to restore the previous AppImage.
 
-The installer may request `sudo` access only when a required system package needs to be installed through the distribution's package manager.
+The installer may request `sudo` access only when a required system dependency needs to be installed through the Linux distribution's package manager.
 
 ## Reporting Problems
+
+If you encounter a problem with the installer, please open an issue in this repository:
+
+**https://github.com/eltonnikecasa/ElegooSlicer-Linux-Installer/issues**
 
 When reporting an installation problem, please include:
 
@@ -248,9 +249,28 @@ When reporting an installation problem, please include:
 * ElegooSlicer version
 * Installer output or error message
 
-Please do not report issues with this installer to ELEGOO unless the issue is specifically related to ElegooSlicer itself.
+Please do not report problems caused by this installer to ELEGOO.
 
-Problems caused by this installation script should be reported to this repository.
+Issues related specifically to the official ElegooSlicer application should be reported through the appropriate official ELEGOO channels.
+
+## Testing Other Distributions
+
+Help testing other Linux distributions is welcome.
+
+If you successfully install or update ElegooSlicer using this installer on a distribution currently marked as **Not tested**, please open an issue or pull request.
+
+Please include:
+
+* Distribution
+* Distribution version
+* Desktop environment
+* Installer version/commit
+* ElegooSlicer version installed
+* Whether installation succeeded
+* Whether the application launcher and icon worked correctly
+* Any dependencies or additional steps required
+
+Once a distribution has been successfully verified, its status can be updated in the compatibility table.
 
 ## Contributions
 
@@ -265,7 +285,7 @@ Useful contributions include:
 * Fixing installation or update problems
 * Improving documentation
 
-If you test an currently untested distribution successfully, please open an issue or pull request so its status can be updated in the compatibility table.
+Pull requests should clearly describe what was changed and which Linux distribution(s) were used for testing.
 
 ## License
 
@@ -281,6 +301,6 @@ This software is provided without warranty.
 
 Use it at your own risk.
 
-This project is an independent community utility intended to simplify the installation and desktop integration of the official ElegooSlicer AppImage on Linux.
+This project is an independent community utility intended to simplify the installation, updating, and desktop integration of the official ElegooSlicer AppImage on Linux.
 
 **ELEGOO is not responsible for this installer or for issues caused by its use.**

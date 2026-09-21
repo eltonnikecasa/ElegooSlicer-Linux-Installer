@@ -288,6 +288,61 @@ case "$PKG_MANAGER" in
 esac
 
 # ------------------------------------------------------------
+# WebKitGTK 4.1 / JavaScriptCoreGTK 4.1
+# Necessários pelo runtime web embutido do ElegooSlicer.
+# No Fedora/RHEL-like, o pacote webkit2gtk4.1 fornece ambas
+# as bibliotecas: libwebkit2gtk-4.1.so.0 e
+# libjavascriptcoregtk-4.1.so.0.
+# ------------------------------------------------------------
+
+have_webkit41() {
+    ldconfig -p 2>/dev/null | grep -q 'libwebkit2gtk-4\.1\.so\.0' && \
+    ldconfig -p 2>/dev/null | grep -q 'libjavascriptcoregtk-4\.1\.so\.0'
+}
+
+if ! have_webkit41; then
+    case "$PKG_MANAGER" in
+        pacman)
+            install_packages webkit2gtk-4.1 || \
+                fail "Não foi possível instalar o WebKitGTK 4.1."
+            ;;
+        apt)
+            # O nome varia conforme a versão da distribuição.
+            if apt-cache show libwebkit2gtk-4.1-0 >/dev/null 2>&1; then
+                install_packages libwebkit2gtk-4.1-0 || \
+                    fail "Não foi possível instalar o WebKitGTK 4.1."
+            else
+                fail "O pacote libwebkit2gtk-4.1-0 não está disponível nesta versão de $DISTRO."
+            fi
+            ;;
+        dnf)
+            # Fedora/RHEL-like: tenta primeiro o nome padrão.
+            if sudo dnf install -y webkit2gtk4.1; then
+                :
+            else
+                # Fallback: pede ao DNF o pacote que fornece a biblioteca.
+                sudo dnf install -y '*/libwebkit2gtk-4.1.so.0' || \
+                    fail "Não foi possível instalar o WebKitGTK 4.1 no $DISTRO."
+            fi
+            ;;
+        zypper)
+            sudo zypper --non-interactive install webkit2gtk-4_1 || \
+            sudo zypper --non-interactive install 'libwebkit2gtk-4.1.so.0' || \
+                fail "Não foi possível instalar o WebKitGTK 4.1 no $DISTRO."
+            ;;
+    esac
+
+    # Atualiza o cache do linker, quando permitido.
+    sudo ldconfig >/dev/null 2>&1 || true
+
+    have_webkit41 || fail "O WebKitGTK 4.1 foi instalado, mas as bibliotecas exigidas pelo ElegooSlicer ainda não foram encontradas.
+
+Bibliotecas necessárias:
+• libwebkit2gtk-4.1.so.0
+• libjavascriptcoregtk-4.1.so.0"
+fi
+
+# ------------------------------------------------------------
 # Consulta e decisão Instalar / Atualizar / Reinstalar
 # ------------------------------------------------------------
 

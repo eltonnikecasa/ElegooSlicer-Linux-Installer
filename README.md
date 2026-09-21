@@ -69,7 +69,7 @@ However, **implemented support does not mean that the distribution has been test
 | Manjaro      | pacman          | ⬜ Not tested |
 | Debian       | apt             | ⬜ Not tested |
 | Ubuntu       | apt             | ⬜ Not tested |
-| Fedora       | dnf             | ⬜ Not tested |
+| Fedora       | dnf             | ✅ **Tested** |
 | openSUSE     | zypper          | ⬜ Not tested |
 
 ### Currently tested
